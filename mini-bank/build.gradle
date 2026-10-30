@@ -33,6 +33,7 @@ dependencies {
 	implementation 'org.flywaydb:flyway-mysql'
 	implementation 'com.vaadin:vaadin-spring-boot-starter'                    // 9.1절 Vaadin
 	implementation 'org.springframework.boot:spring-boot-starter-security'    // 14장 Spring Security
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'   // 19장 JWT
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'   // 버전은 Spring Boot가 관리

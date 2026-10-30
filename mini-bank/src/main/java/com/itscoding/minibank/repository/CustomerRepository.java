@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
@@ -31,6 +32,11 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
             ORDER BY c.name
             """)
     List<CustomerResponseDto> searchWithAccountCount(@Param("keyword") String keyword);
+
+    // 19.2절 고객 로그인
+    boolean existsByUsername(String username);
+
+    Optional<Customer> findByUsername(String username);
 
     // 6.8절 쿼리 메서드 이름 규칙: WHERE name LIKE %keyword%
     List<Customer> findByNameContainingOrderByNameAsc(String keyword);

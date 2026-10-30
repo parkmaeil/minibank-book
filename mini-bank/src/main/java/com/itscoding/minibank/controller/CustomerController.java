@@ -3,6 +3,7 @@ package com.itscoding.minibank.controller;
 import com.itscoding.minibank.dto.CustomerCreateRequestDto;
 import com.itscoding.minibank.dto.CustomerResponseDto;
 import com.itscoding.minibank.dto.CustomerUpdateRequestDto;
+import com.itscoding.minibank.dto.LoginIssueRequestDto;
 import com.itscoding.minibank.service.CustomerService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -49,6 +50,14 @@ public class CustomerController {
     public ResponseEntity<Void> updateCustomer(
             @PathVariable Long id, @Valid @RequestBody CustomerUpdateRequestDto request) {
         customerService.updateCustomer(id, request);
+        return ResponseEntity.ok().build();
+    }
+
+    // 19.2절 직원용(14장의 Basic 인증 적용 대상) — 고객에게 로그인 계정 발급
+    @PostMapping("/{id}/login")
+    public ResponseEntity<Void> issueLogin(@PathVariable Long id,
+                                           @Valid @RequestBody LoginIssueRequestDto request) {
+        customerService.issueLogin(id, request.getUsername(), request.getPassword());
         return ResponseEntity.ok().build();
     }
 

@@ -9,6 +9,7 @@ import com.itscoding.minibank.dto.AccountResponseDto;
 import com.itscoding.minibank.dto.TransactionResponseDto;
 import com.itscoding.minibank.dto.TransferRequestDto;
 import com.itscoding.minibank.event.TransferCompletedEvent;
+import com.itscoding.minibank.exception.AccountAccessDeniedException;
 import com.itscoding.minibank.exception.AccountNotFoundException;
 import com.itscoding.minibank.exception.CustomerNotFoundException;
 import com.itscoding.minibank.exception.DailyLimitExceededException;
@@ -125,6 +126,37 @@ public class AccountService {
                 .findByAccountIdAndTransactedAtBetween(
                         accountId, from.atStartOfDay(), to.plusDays(1).atStartOfDay(), pageable)
                 .map(TransactionResponseDto::from);
+    }
+
+    // ===== 19.4절 고객용 메서드 =====
+    @Transactional(readOnly = true)
+    public List<AccountResponseDto> getAccountsOf(Long customerId) {
+        return accountRepository.findByCustomerIdOrderByIdAsc(customerId).stream()
+                .map(AccountResponseDto::from).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TransactionResponseDto> getMyTransactions(Long customerId, String accountNumber,
+                                                         Pageable pageable) {
+        Account account = findOwnedAccount(customerId, accountNumber);
+        return transactionHistoryRepository
+                .findByAccountIdOrderByTransactedAtDesc(account.getId(), pageable)
+                .map(TransactionResponseDto::from);
+    }
+
+    @Transactional
+    public void transferAsCustomer(Long customerId, TransferRequestDto request) {
+        findOwnedAccount(customerId, request.getFromAccountNumber());   // 출금 계좌 소유권 확인
+        transfer(request);           // 같은 트랜잭션에 참여 — 7장의 이체 로직을 그대로 재사용
+    }
+
+    private Account findOwnedAccount(Long customerId, String accountNumber) {
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new AccountNotFoundException(accountNumber));
+        if (!account.getCustomer().getId().equals(customerId)) {
+            throw new AccountAccessDeniedException(accountNumber);     // 403
+        }
+        return account;
     }
 
     // 13장 1일 이체 한도 변경

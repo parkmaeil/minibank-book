@@ -1,9 +1,11 @@
 package com.itscoding.minibank.service;
 
 import com.itscoding.minibank.domain.Account;
+import com.itscoding.minibank.domain.Customer;
 import com.itscoding.minibank.domain.TransactionHistory;
 import com.itscoding.minibank.domain.TransactionType;
 import com.itscoding.minibank.dto.TransferRequestDto;
+import com.itscoding.minibank.exception.AccountAccessDeniedException;
 import com.itscoding.minibank.exception.DailyLimitExceededException;
 import com.itscoding.minibank.exception.InsufficientBalanceException;
 import com.itscoding.minibank.repository.AccountRepository;
@@ -16,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -97,5 +100,24 @@ class AccountServiceTest {
         assertThatThrownBy(() -> accountService.transfer(request))
                 .isInstanceOf(DailyLimitExceededException.class);
         assertThat(from.getBalance()).isEqualByComparingTo("500000");   // 출금되지 않음
+    }
+
+    // 19.4절 소유권 검사 — 남의 계좌에서는 이체할 수 없다(IDOR 방어)
+    @Test
+    void 다른_고객의_계좌에서_이체하면_AccountAccessDeniedException이_발생한다() {
+        Customer owner = new Customer("홍길동", "010-1111-2222");
+        ReflectionTestUtils.setField(owner, "id", 1L);          // 저장하지 않았으므로 id를 직접 넣는다
+        Account from = new Account("110-1111-1111", new BigDecimal("50000"));
+        from.assignCustomer(owner);
+        given(accountRepository.findByAccountNumber("110-1111-1111")).willReturn(Optional.of(from));
+
+        TransferRequestDto request = new TransferRequestDto();
+        request.setFromAccountNumber("110-1111-1111");
+        request.setToAccountNumber("110-2222-2222");
+        request.setAmount(new BigDecimal("10000"));
+
+        assertThatThrownBy(() -> accountService.transferAsCustomer(2L, request))   // 2번 고객이 시도
+                .isInstanceOf(AccountAccessDeniedException.class);
+        assertThat(from.getBalance()).isEqualByComparingTo("50000");
     }
 }
