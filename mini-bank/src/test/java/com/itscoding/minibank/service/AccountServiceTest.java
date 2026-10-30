@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -31,6 +32,7 @@ class AccountServiceTest {
     @Mock private AccountRepository accountRepository;
     @Mock private CustomerRepository customerRepository;
     @Mock private TransactionHistoryRepository transactionHistoryRepository;   // 12장 추가 — 없으면 transfer()에서 NPE
+    @Mock private ApplicationEventPublisher eventPublisher;                    // 15장 추가
     @InjectMocks private AccountService accountService;
 
     @Test
