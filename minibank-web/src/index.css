@@ -1,111 +1,66 @@
+/* 미니뱅크 고객용 화면 공통 스타일 */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
+  --navy: #1f3b63;
+  --red: #c0392b;
+  --green: #2e7d32;
+  --line: #dfe3ea;
+  --bg: #f5f7fa;
+  --text: #222;
+  font-family: "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
   color: var(--text);
   background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+* { box-sizing: border-box; }
+body { margin: 0; }
+#root { max-width: 880px; margin: 0 auto; padding: 24px 16px; }
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
+h2 { color: var(--navy); margin: 8px 0 16px; }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+button {
+  border: 1px solid var(--navy);
+  background: var(--navy);
+  color: #fff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
 }
+button:disabled { opacity: .45; cursor: not-allowed; }
 
-body {
-  margin: 0;
+input, select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+  background: #fff;
 }
+label { display: block; margin-bottom: 14px; font-weight: 600; }
+form { max-width: 420px; }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
+/* 계좌 카드 (16.4절) */
+.card-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-top: 16px; }
+.card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+.card-number { color: #666; font-size: .9rem; }
+.card-balance { font-size: 1.5rem; font-weight: 700; margin: 8px 0 14px; }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
+/* 상단 바 (18.1절) */
+.topbar { display: flex; align-items: center; gap: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--navy); margin-bottom: 20px; }
+.topbar nav { display: flex; gap: 12px; flex: 1; }
+.topbar a { color: var(--navy); text-decoration: none; padding: 4px 6px; }
+.topbar a.active { font-weight: 700; border-bottom: 2px solid var(--red); }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
+/* 거래내역 표 (18.3절) */
+table { width: 100%; border-collapse: collapse; background: #fff; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; }
+th { background: #e8edf4; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.plus { color: var(--green); font-weight: 600; }
+.minus { color: var(--red); font-weight: 600; }
+.pager { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 14px; }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
-}
+.error { color: var(--red); }
+.hint { color: #8a5a00; }
