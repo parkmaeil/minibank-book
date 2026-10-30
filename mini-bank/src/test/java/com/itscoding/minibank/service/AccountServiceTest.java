@@ -1,7 +1,10 @@
 package com.itscoding.minibank.service;
 
 import com.itscoding.minibank.domain.Account;
+import com.itscoding.minibank.domain.TransactionHistory;
+import com.itscoding.minibank.domain.TransactionType;
 import com.itscoding.minibank.dto.TransferRequestDto;
+import com.itscoding.minibank.exception.DailyLimitExceededException;
 import com.itscoding.minibank.exception.InsufficientBalanceException;
 import com.itscoding.minibank.repository.AccountRepository;
 import com.itscoding.minibank.repository.CustomerRepository;
@@ -14,10 +17,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,5 +71,29 @@ class AccountServiceTest {
         assertThatThrownBy(() -> accountService.transfer(request))
                 .isInstanceOf(InsufficientBalanceException.class)
                 .hasMessageContaining("잔액이 부족합니다");
+    }
+
+    // 13.4절 추가 테스트
+    @Test
+    void 오늘_출금합계와_이번_금액이_한도를_넘으면_예외가_발생한다() {
+        Account from = new Account("110-1111-1111", new BigDecimal("500000"));
+        Account to = new Account("110-2222-2222", BigDecimal.ZERO);
+        from.changeDailyLimit(new BigDecimal("100000"));
+        given(accountRepository.findByAccountNumber("110-1111-1111")).willReturn(Optional.of(from));
+        given(accountRepository.findByAccountNumber("110-2222-2222")).willReturn(Optional.of(to));
+        // 오늘 이미 60,000원을 출금했다고 가정
+        given(transactionHistoryRepository.findByAccountIdAndTypeAndTransactedAtBetween(
+                any(), eq(TransactionType.WITHDRAW), any(), any()))
+                .willReturn(List.of(new TransactionHistory(from, TransactionType.WITHDRAW,
+                        new BigDecimal("60000"), new BigDecimal("440000"), "이전 이체")));
+
+        TransferRequestDto request = new TransferRequestDto();
+        request.setFromAccountNumber("110-1111-1111");
+        request.setToAccountNumber("110-2222-2222");
+        request.setAmount(new BigDecimal("50000"));   // 60,000 + 50,000 > 100,000
+
+        assertThatThrownBy(() -> accountService.transfer(request))
+                .isInstanceOf(DailyLimitExceededException.class);
+        assertThat(from.getBalance()).isEqualByComparingTo("500000");   // 출금되지 않음
     }
 }
