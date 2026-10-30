@@ -46,3 +46,8 @@ application-local.properties
 
 ### 로그 파일 (3.8절) ###
 logs/
+
+### Vaadin이 개발 모드에서 자동으로 만드는 파일 (9.1절) ###
+src/main/frontend/generated/
+target/
+node_modules/
