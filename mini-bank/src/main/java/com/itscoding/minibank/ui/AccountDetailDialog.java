@@ -29,12 +29,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 // 13장 계좌 상세 Dialog — 잔액·한도 확인과 한도 변경(위), 12장의 거래내역·기간 검색·CSV(아래)를 한 화면에
+// 14.8절 한도 변경 칸은 관리자에게만 보여 준다(canChangeLimit). 실제로 막는 것은 Service의 @PreAuthorize
 public class AccountDetailDialog extends Dialog {
 
     private final NumberFormat won = NumberFormat.getIntegerInstance(Locale.KOREA);   // 30,000 형식
 
     public AccountDetailDialog(AccountResponseDto account,
-                               AccountService accountService, Runnable onChanged) {
+                               AccountService accountService, boolean canChangeLimit,
+                               Runnable onChanged) {
         setHeaderTitle(account.getAccountNumber() + " 계좌 상세 (" + account.getOwnerName() + ")");
 
         // ── 위: 잔액·현재 한도·한도 변경
@@ -53,7 +55,10 @@ public class AccountDetailDialog extends Dialog {
                 Notification.show("한도 변경 실패: " + ex.getMessage());   // 빈 값·0 이하는 Account가 막는다
             }
         });
-        HorizontalLayout summary = new HorizontalLayout(balance, limit, newLimit, change);
+        HorizontalLayout summary = new HorizontalLayout(balance, limit);
+        if (canChangeLimit) {
+            summary.add(newLimit, change);         // 관리자만 — 창구 직원의 화면에는 붙이지 않는다
+        }
         summary.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.BASELINE);
 
         // ── 아래: 12.5~12.8절의 거래내역 (구분 색, 원 단위, 기간 검색, CSV)

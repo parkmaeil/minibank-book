@@ -6,9 +6,11 @@ import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
+import jakarta.annotation.security.PermitAll;
 
 // http://localhost:8080/ (기본 경로)로 접속 시 이 화면이 렌더링된다
 @Route(value = "", layout = MainLayout.class)
+@PermitAll   // 14.7절 로그인한 직원이면 누구나
 public class MainView extends VerticalLayout {
     public MainView() {
         H1 title = new H1("미니 금융 ERP");

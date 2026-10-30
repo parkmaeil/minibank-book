@@ -1,6 +1,7 @@
 package com.itscoding.minibank.service;
 
 import com.itscoding.minibank.dto.TransferRequestDto;
+import com.itscoding.minibank.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -20,6 +21,9 @@ public class TransferFacade {
 
     // 이체의 단 하나의 입구: 충돌하면 재시도하고(7.8절), 끝내 실패하면 기록을 남긴다(7.6절)
     public void transferWithRetry(TransferRequestDto request) {
+        // 14.8절 누가 이체를 요청했는지 남긴다 — API와 관리 화면이 모두 이 입구를 지나므로 한 곳이면 된다
+        log.info("이체 요청 - by={}, from={}, to={}, amount={}", CurrentUser.username(),
+                request.getFromAccountNumber(), request.getToAccountNumber(), request.getAmount());
         try {
             retry(request);
         } catch (RuntimeException e) {

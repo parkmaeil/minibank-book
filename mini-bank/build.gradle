@@ -37,6 +37,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-flyway'       // 5.8절 Flyway
 	implementation 'org.flywaydb:flyway-mysql'
 	implementation 'com.vaadin:vaadin-spring-boot-starter'                    // 9.1절 Vaadin
+	implementation 'org.springframework.boot:spring-boot-starter-security'    // 14장 Spring Security
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'   // 버전은 Spring Boot가 관리
@@ -49,6 +50,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'          // 10.6절 Testcontainers
 	testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
 	testImplementation 'org.testcontainers:testcontainers-mysql'
+	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'   // 14.9절 (@WebMvcTest에 보안 설정 포함)
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
 	mockitoAgent('org.mockito:mockito-core') { transitive = false }   // 10.2절 Mockito를 Java 에이전트로 등록

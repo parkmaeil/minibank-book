@@ -7,8 +7,10 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
+import jakarta.annotation.security.PermitAll;
 
 @Route(value = "customers", layout = MainLayout.class)   // http://localhost:8080/customers
+@PermitAll   // 14.7절 로그인한 직원이면 누구나
 public class CustomerListView extends VerticalLayout {
 
     private final CustomerService customerService;

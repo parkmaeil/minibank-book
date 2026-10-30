@@ -13,23 +13,28 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.data.renderer.NumberRenderer;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.spring.security.AuthenticationContext;
+import jakarta.annotation.security.PermitAll;
 
 import java.text.NumberFormat;
 import java.util.Locale;
 
 @Route(value = "accounts", layout = MainLayout.class)
+@PermitAll   // 14.7절 로그인한 직원이면 누구나
 public class AccountListView extends VerticalLayout {
 
     private final AccountService accountService;
     private final CustomerService customerService;
     private final TransferFacade transferFacade;   // 12.2절 이체 화면용
+    private final boolean admin;                   // 14.8절 관리자인가 — 한도 변경 칸을 보여 줄지 정한다
     private final Grid<AccountResponseDto> grid = new Grid<>(AccountResponseDto.class, false);
 
     public AccountListView(AccountService accountService, CustomerService customerService,
-                           TransferFacade transferFacade) {
+                           TransferFacade transferFacade, AuthenticationContext authContext) {
         this.accountService = accountService;
         this.customerService = customerService;
         this.transferFacade = transferFacade;
+        this.admin = authContext.hasRole("ADMIN");
 
         // 9.10절 금액 서식
         NumberFormat won = NumberFormat.getIntegerInstance(Locale.KOREA);
@@ -49,7 +54,7 @@ public class AccountListView extends VerticalLayout {
 
         // 13장 행을 클릭하면 계좌 상세 Dialog(한도 변경 + 12장의 거래내역·기간 검색·CSV)를 연다
         grid.addItemClickListener(event ->
-                new AccountDetailDialog(event.getItem(), accountService, this::refreshGrid).open());
+                new AccountDetailDialog(event.getItem(), accountService, admin, this::refreshGrid).open());
 
         Button createButton = new Button("새 계좌 개설", e -> openCreateDialog());
         Button transferButton = new Button("계좌 이체", e -> openTransferDialog());   // 🔥 12.2절

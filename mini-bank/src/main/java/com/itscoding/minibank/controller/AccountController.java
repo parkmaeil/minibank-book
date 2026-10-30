@@ -120,10 +120,11 @@ public class AccountController {
     }
 
     // 13장 1일 이체 한도 변경 — 일부 속성만 바꾸므로 PATCH(4장)
-    @Operation(summary = "1일 이체 한도 변경", description = "계좌의 1일 이체 한도를 바꿉니다. 0보다 큰 금액이어야 합니다.")
+    @Operation(summary = "1일 이체 한도 변경", description = "계좌의 1일 이체 한도를 바꿉니다. 0보다 큰 금액이어야 하며, 관리자(ADMIN)만 바꿀 수 있습니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "변경 성공(바뀐 한도가 담긴 계좌 정보)"),
             @ApiResponse(responseCode = "400", description = "한도 누락 또는 0 이하"),
+            @ApiResponse(responseCode = "403", description = "관리자가 아님(14.8절)"),
             @ApiResponse(responseCode = "404", description = "계좌 없음")
     })
     @PatchMapping("/{id}/limit")
