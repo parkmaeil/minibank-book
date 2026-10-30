@@ -9,6 +9,8 @@ import com.itscoding.minibank.exception.AccountNotFoundException;
 import com.itscoding.minibank.exception.CustomerNotFoundException;
 import com.itscoding.minibank.repository.AccountRepository;
 import com.itscoding.minibank.repository.CustomerRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -47,9 +49,16 @@ public class AccountService {
 
     @Transactional(readOnly = true)
     public List<AccountResponseDto> getAllAccounts() {
-        return accountRepository.findAll().stream()   // 8장에서 N+1 문제를 해결한다
+        // findAll() → findAllWithCustomer() : N+1 해결 (8장)
+        return accountRepository.findAllWithCustomer().stream()
                 .map(AccountResponseDto::from)
                 .toList();
+    }
+
+    // 8.7절 페이징
+    @Transactional(readOnly = true)
+    public Page<AccountResponseDto> getAccountPage(Pageable pageable) {
+        return accountRepository.findAll(pageable).map(AccountResponseDto::from);
     }
 
     // 7.2절 이체 — 이 메서드 전체가 하나의 트랜잭션으로 묶인다
