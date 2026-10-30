@@ -4,6 +4,7 @@ import com.itscoding.minibank.domain.Account;
 import com.itscoding.minibank.domain.Customer;
 import com.itscoding.minibank.dto.AccountCreateRequestDto;
 import com.itscoding.minibank.dto.AccountResponseDto;
+import com.itscoding.minibank.dto.TransferRequestDto;
 import com.itscoding.minibank.exception.AccountNotFoundException;
 import com.itscoding.minibank.exception.CustomerNotFoundException;
 import com.itscoding.minibank.repository.AccountRepository;
@@ -49,6 +50,22 @@ public class AccountService {
         return accountRepository.findAll().stream()   // 8장에서 N+1 문제를 해결한다
                 .map(AccountResponseDto::from)
                 .toList();
+    }
+
+    // 7.2절 이체 — 이 메서드 전체가 하나의 트랜잭션으로 묶인다
+    @Transactional
+    public void transfer(TransferRequestDto request) {
+        if (request.getFromAccountNumber().equals(request.getToAccountNumber())) {
+            throw new IllegalArgumentException("같은 계좌로는 이체할 수 없습니다.");
+        }
+        Account from = accountRepository.findByAccountNumber(request.getFromAccountNumber())
+                .orElseThrow(() -> new AccountNotFoundException(request.getFromAccountNumber()));
+        Account to = accountRepository.findByAccountNumber(request.getToAccountNumber())
+                .orElseThrow(() -> new AccountNotFoundException(request.getToAccountNumber()));
+
+        from.withdraw(request.getAmount());   // 잔액 부족 시 InsufficientBalanceException
+        to.deposit(request.getAmount());
+        // save()를 호출하지 않아도 Dirty Checking으로 두 계좌 모두 UPDATE된다
     }
 
     private String generateAccountNumber() {
