@@ -5,6 +5,7 @@ import com.itscoding.minibank.domain.Customer;
 import com.itscoding.minibank.dto.AccountCreateRequestDto;
 import com.itscoding.minibank.dto.AccountResponseDto;
 import com.itscoding.minibank.exception.AccountNotFoundException;
+import com.itscoding.minibank.exception.CustomerNotFoundException;
 import com.itscoding.minibank.repository.AccountRepository;
 import com.itscoding.minibank.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,17 +22,16 @@ import java.util.Random;
 public class AccountService {
 
     private final AccountRepository accountRepository;
-    private final CustomerRepository customerRepository;
+    private final CustomerRepository customerRepository;   // 고객 조회를 위해 추가
 
     @Transactional
     public AccountResponseDto createAccount(AccountCreateRequestDto request) {
-        log.info("계좌 개설 요청 - ownerName={}", request.getOwnerName());
+        log.info("계좌 개설 요청 - customerId={}", request.getCustomerId());
+        Customer customer = customerRepository.findById(request.getCustomerId())
+                .orElseThrow(() -> new CustomerNotFoundException(request.getCustomerId()));
 
-        // 5장 임시 구현: 예금주명으로 고객을 새로 만들어 계좌를 연결한다.
-        // 6장에서 고객 관리 API를 만든 뒤에는 고객 ID로 기존 고객을 찾아 연결한다.
-        Customer owner = customerRepository.save(new Customer(request.getOwnerName(), null));
         Account account = new Account(generateAccountNumber(), request.getInitialBalance());
-        account.assignCustomer(owner);         // 계좌 쪽에서 고객을 연결한다 (N:1 단방향)
+        account.assignCustomer(customer);      // N:1 단방향 — 계좌 쪽에서 고객을 연결한다 (6.6절)
 
         Account saved = accountRepository.save(account);
         return AccountResponseDto.from(saved);
@@ -46,7 +46,7 @@ public class AccountService {
 
     @Transactional(readOnly = true)
     public List<AccountResponseDto> getAllAccounts() {
-        return accountRepository.findAll().stream()
+        return accountRepository.findAll().stream()   // 8장에서 N+1 문제를 해결한다
                 .map(AccountResponseDto::from)
                 .toList();
     }
