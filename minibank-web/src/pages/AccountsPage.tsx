@@ -1,27 +1,29 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import AccountCard from "../components/AccountCard";
+import { api } from "../api/client";
 import type { Account } from "../types";
 
-// 17장에서 실제 API로 바꾸기 전까지 쓰는 임시 데이터
-const SAMPLE: Account[] = [
-  { id: 1, accountNumber: "110-9221-2776", ownerName: "홍길동", balance: 30000,
-    dailyLimit: 3000000, openedAt: "2026-10-01T10:00:00" },
-  { id: 2, accountNumber: "110-2454-5518", ownerName: "홍길동", balance: 20000,
-    dailyLimit: 3000000, openedAt: "2026-10-01T10:05:00" },
-];
-
+// 17.6절 TanStack Query 버전
+// /api/me/accounts는 19장에서 만드는 고객용 API다. 19장을 마치기 전에는 401 오류가 표시된다.
 export default function AccountsPage() {
-  const [hidden, setHidden] = useState(false);     // [현재 값, 바꾸는 함수]
+  const [hidden, setHidden] = useState(false);
+  const { data: accounts, isPending, isError, error } = useQuery({
+    queryKey: ["myAccounts"],                          // 이 데이터의 이름(캐시 키)
+    queryFn: () => api<Account[]>("/api/me/accounts"),
+  });
 
-  const total = SAMPLE.reduce((sum, a) => sum + a.balance, 0);
+  if (isPending) return <p>불러오는 중...</p>;
+  if (isError) return <p className="error">{error.message}</p>;
 
+  const total = accounts.reduce((sum, a) => sum + a.balance, 0);
   return (
     <section>
       <h2>내 계좌</h2>
       <p>총 잔액: {hidden ? "••••••" : total.toLocaleString("ko-KR") + "원"}</p>
       <button onClick={() => setHidden(!hidden)}>{hidden ? "잔액 보기" : "잔액 숨기기"}</button>
       <div className="card-list">
-        {SAMPLE.map((a) => (
+        {accounts.map((a) => (
           <AccountCard key={a.id} account={a}
                        onShowHistory={(no) => alert(no + " 거래내역")} />
         ))}
