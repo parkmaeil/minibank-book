@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.1.2'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'                                    // 10.7절 테스트 커버리지
 }
 
 group = 'com.itscoding'
@@ -38,6 +39,10 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testCompileOnly 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'   // 10.5절 @DataJpaTest
+	testImplementation 'org.springframework.boot:spring-boot-testcontainers'          // 10.6절 Testcontainers
+	testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+	testImplementation 'org.testcontainers:testcontainers-mysql'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
 }
@@ -49,6 +54,15 @@ dependencyManagement {
 	}
 }
 
+// 10.7절 JaCoCo 보고서 (build/reports/jacoco/test/html/index.html)
+jacocoTestReport {
+	dependsOn test
+	reports {
+		html.required = true
+	}
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport          // 테스트가 끝나면 보고서를 자동 생성
 }
