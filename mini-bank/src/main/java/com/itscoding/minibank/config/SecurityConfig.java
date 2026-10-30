@@ -23,6 +23,24 @@ import java.util.List;
 @EnableMethodSecurity            // 14.8절 Service 메서드의 @PreAuthorize를 켠다
 public class SecurityConfig {
 
+    // 19.3절 고객용 필터 체인 — JWT(Bearer 토큰)로 인증
+    @Bean
+    @Order(0)                                            // 직원용 체인(@Order(1)·(2))보다 먼저 검사
+    public SecurityFilterChain customerSecurity(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher("/api/auth/**", "/api/me/**")
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/auth/login").permitAll()
+                .requestMatchers("/api/me/**").hasAuthority("SCOPE_CUSTOMER")
+                .anyRequest().denyAll())
+            // Bearer 토큰 검증
+            .oauth2ResourceServer(o -> o.jwt(Customizer.withDefaults()))
+            .cors(Customizer.withDefaults())
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        return http.build();
+    }
+
     // 14.6절 직원용 REST API 보안 규칙
     @Bean
     @Order(1)                    // 관리 화면 체인(VaadinSecurityConfig, @Order(2))보다 먼저 검사

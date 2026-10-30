@@ -13,6 +13,9 @@ public interface TransactionHistoryRepository extends JpaRepository<TransactionH
 
     List<TransactionHistory> findByAccountIdOrderByTransactedAtDesc(Long accountId);
 
+    // 19.4절 고객용 거래내역 페이지 조회
+    Page<TransactionHistory> findByAccountIdOrderByTransactedAtDesc(Long accountId, Pageable pageable);
+
     // 13장 오늘 출금 합계를 구하기 위한 조회
     List<TransactionHistory> findByAccountIdAndTypeAndTransactedAtBetween(
             Long accountId, TransactionType type, LocalDateTime start, LocalDateTime end);

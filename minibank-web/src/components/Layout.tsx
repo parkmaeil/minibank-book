@@ -1,7 +1,8 @@
 import { NavLink, Outlet } from "react-router";
+import { useAuth } from "../auth/AuthContext";
 
-// 18.1절 — 로그인한 고객 이름과 로그아웃 버튼은 19.5절에서 추가한다
 export default function Layout() {
+  const { name, logout } = useAuth();
   return (
     <div className="app">
       <header className="topbar">
@@ -10,6 +11,8 @@ export default function Layout() {
           <NavLink to="/">내 계좌</NavLink>
           <NavLink to="/transfer">이체</NavLink>
         </nav>
+        <span>{name}님</span>
+        <button onClick={logout}>로그아웃</button>
       </header>
       <main><Outlet /></main>          {/* 자식 경로의 화면이 여기 그려진다 */}
     </div>

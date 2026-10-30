@@ -10,10 +10,19 @@ export class ApiError extends Error {
 }
 
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const token = sessionStorage.getItem("token");          // 19.5절 로그인 토큰
   const res = await fetch(path, {
     ...options,
-    headers: { "Content-Type": "application/json", ...options.headers },
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...options.headers,
+    },
   });
+  if (res.status === 401 && !path.startsWith("/api/auth")) {
+    sessionStorage.clear();
+    window.location.href = "/login";        // 토큰 만료 시 로그인 화면으로
+  }
 
   if (!res.ok) {
     // 백엔드 GlobalExceptionHandler의 {"message": "..."} 형식을 읽는다

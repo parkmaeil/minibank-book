@@ -6,7 +6,6 @@ import { api } from "../api/client";
 import type { Account } from "../types";
 
 // 17.6절 TanStack Query 버전
-// /api/me/accounts는 19장에서 만드는 고객용 API다. 19장을 마치기 전에는 401 오류가 표시된다.
 export default function AccountsPage() {
   const [hidden, setHidden] = useState(false);
   const navigate = useNavigate();
