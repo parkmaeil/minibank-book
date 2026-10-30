@@ -34,6 +34,7 @@ dependencies {
 	implementation 'com.vaadin:vaadin-spring-boot-starter'                    // 9.1절 Vaadin
 	implementation 'org.springframework.boot:spring-boot-starter-security'    // 14장 Spring Security
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'   // 19장 JWT
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'    // 20.6절 운영 모니터링
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'   // 버전은 Spring Boot가 관리
