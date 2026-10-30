@@ -51,6 +51,10 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             """)
     List<AccountSummaryDto> findAllSummaries();
 
+    // 15.5절 이자 지급 배치 — id만 페이지 단위로 조회
+    @Query("SELECT a.id FROM Account a")
+    List<Long> findIds(Pageable pageable);
+
     // 8.7절 페이징
     @Override
     @EntityGraph(attributePaths = "customer")

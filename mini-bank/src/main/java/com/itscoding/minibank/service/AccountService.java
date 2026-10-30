@@ -8,12 +8,14 @@ import com.itscoding.minibank.dto.AccountCreateRequestDto;
 import com.itscoding.minibank.dto.AccountResponseDto;
 import com.itscoding.minibank.dto.TransactionResponseDto;
 import com.itscoding.minibank.dto.TransferRequestDto;
+import com.itscoding.minibank.event.TransferCompletedEvent;
 import com.itscoding.minibank.exception.AccountNotFoundException;
 import com.itscoding.minibank.exception.CustomerNotFoundException;
 import com.itscoding.minibank.exception.DailyLimitExceededException;
 import com.itscoding.minibank.repository.AccountRepository;
 import com.itscoding.minibank.repository.CustomerRepository;
 import com.itscoding.minibank.repository.TransactionHistoryRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,7 @@ public class AccountService {
     private final CustomerRepository customerRepository;   // 고객 조회를 위해 추가
     // 🔥 12장 필드 추가
     private final TransactionHistoryRepository transactionHistoryRepository;
+    private final ApplicationEventPublisher eventPublisher;   // 15.2절 생성자 주입 필드에 추가
 
     @Transactional
     public AccountResponseDto createAccount(AccountCreateRequestDto request) {
@@ -95,6 +98,11 @@ public class AccountService {
         transactionHistoryRepository.save(new TransactionHistory(
                 to, TransactionType.DEPOSIT, request.getAmount(),
                 to.getBalance(), "이체 입금 ← " + from.getAccountNumber()));
+
+        // 15.2절 이체 완료 이벤트 발행 — 실제 처리는 커밋 뒤 리스너가 맡는다
+        eventPublisher.publishEvent(new TransferCompletedEvent(
+                from.getAccountNumber(), to.getAccountNumber(),
+                request.getAmount(), LocalDateTime.now()));
     }
 
     // 🔥 12.4절 거래내역 조회
