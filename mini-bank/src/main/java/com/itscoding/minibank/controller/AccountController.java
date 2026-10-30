@@ -2,6 +2,7 @@ package com.itscoding.minibank.controller;
 
 import com.itscoding.minibank.dto.AccountCreateRequestDto;
 import com.itscoding.minibank.dto.AccountResponseDto;
+import com.itscoding.minibank.dto.TransactionResponseDto;
 import com.itscoding.minibank.dto.TransferRequestDto;
 import com.itscoding.minibank.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,11 +13,16 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.List;
 
 @Tag(name = "계좌", description = "계좌 개설·조회·이체 API")
@@ -73,5 +79,53 @@ public class AccountController {
     public ResponseEntity<Void> transfer(@Valid @RequestBody TransferRequestDto request) {
         accountService.transfer(request);
         return ResponseEntity.ok().build();   // 성공 시 200 OK
+    }
+
+    // 12.4절 거래내역 조회
+    @Operation(summary = "계좌 거래내역 조회")
+    @GetMapping("/{id}/transactions")
+    public ResponseEntity<List<TransactionResponseDto>> getTransactions(@PathVariable Long id) {
+        return ResponseEntity.ok(accountService.getTransactionHistory(id));
+    }
+
+    // 12.7절 — 예: GET /api/accounts/1/transactions/search?from=2026-10-01&to=2026-10-31&page=0&size=20
+    @Operation(summary = "거래내역 기간 검색")
+    @GetMapping("/{id}/transactions/search")
+    public ResponseEntity<Page<TransactionResponseDto>> searchTransactions(
+            @PathVariable Long id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @PageableDefault(size = 20, sort = "transactedAt", direction = Sort.Direction.DESC)
+            Pageable pageable) {
+        return ResponseEntity.ok(accountService.searchTransactions(id, from, to, pageable));
+    }
+
+    // 12.8절 CSV 다운로드
+    @Operation(summary = "거래내역 CSV 다운로드")
+    @GetMapping(value = "/{id}/transactions.csv", produces = "text/csv")
+    public ResponseEntity<byte[]> downloadTransactions(@PathVariable Long id) {
+        // UTF-8 BOM: 엑셀의 한글 깨짐 방지
+        StringBuilder csv = new StringBuilder("﻿");
+        csv.append("구분,금액,거래후잔액,거래일시,메모\n");
+        for (TransactionResponseDto t : accountService.getTransactionHistory(id)) {
+            csv.append(t.getType()).append(',')
+               .append(t.getAmount()).append(',')
+               .append(t.getBalanceAfter()).append(',')
+               .append(t.getTransactedAt()).append(',')
+               .append(escape(t.getDescription())).append('\n');
+        }
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"transactions-" + id + ".csv\"")
+                .body(csv.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    // 값에 쉼표나 따옴표가 들어 있으면 큰따옴표로 감싸고, 안의 따옴표는 두 번 쓴다
+    private String escape(String v) {
+        if (v == null) return "";
+        if (v.contains(",") || v.contains("\"") || v.contains("\n")) {
+            return "\"" + v.replace("\"", "\"\"") + "\"";
+        }
+        return v;
     }
 }

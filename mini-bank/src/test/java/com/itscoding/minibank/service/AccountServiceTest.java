@@ -5,6 +5,7 @@ import com.itscoding.minibank.dto.TransferRequestDto;
 import com.itscoding.minibank.exception.InsufficientBalanceException;
 import com.itscoding.minibank.repository.AccountRepository;
 import com.itscoding.minibank.repository.CustomerRepository;
+import com.itscoding.minibank.repository.TransactionHistoryRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +24,7 @@ import static org.mockito.BDDMockito.given;
 class AccountServiceTest {
     @Mock private AccountRepository accountRepository;
     @Mock private CustomerRepository customerRepository;
+    @Mock private TransactionHistoryRepository transactionHistoryRepository;   // 12장 추가 — 없으면 transfer()에서 NPE
     @InjectMocks private AccountService accountService;
 
     @Test
