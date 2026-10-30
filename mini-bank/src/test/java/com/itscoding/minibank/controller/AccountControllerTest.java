@@ -3,7 +3,6 @@ package com.itscoding.minibank.controller;
 import com.itscoding.minibank.dto.AccountCreateRequestDto;
 import com.itscoding.minibank.dto.AccountResponseDto;
 import com.itscoding.minibank.service.AccountService;
-import com.itscoding.minibank.service.AuditService;
 import com.itscoding.minibank.service.TransferFacade;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,8 +36,6 @@ class AccountControllerTest {
     @MockitoBean
     private TransferFacade transferFacade;   // Controller가 의존하는 Bean은 모두 가짜로 채운다
 
-    @MockitoBean
-    private AuditService auditService;
 
     @Test
     @DisplayName("계좌 개설 API: 정상 요청 시 상태코드 201과 계좌번호가 반환된다")
