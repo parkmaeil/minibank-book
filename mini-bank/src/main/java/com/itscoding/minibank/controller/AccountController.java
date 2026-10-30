@@ -2,6 +2,7 @@ package com.itscoding.minibank.controller;
 
 import com.itscoding.minibank.dto.AccountCreateRequestDto;
 import com.itscoding.minibank.dto.AccountResponseDto;
+import com.itscoding.minibank.dto.DailyLimitRequestDto;
 import com.itscoding.minibank.dto.TransactionResponseDto;
 import com.itscoding.minibank.dto.TransferRequestDto;
 import com.itscoding.minibank.service.AccountService;
@@ -84,7 +85,7 @@ public class AccountController {
             @ApiResponse(responseCode = "200", description = "이체 성공"),
             @ApiResponse(responseCode = "400", description = "입력값 검증 실패 또는 같은 계좌로 이체"),
             @ApiResponse(responseCode = "404", description = "계좌 없음"),
-            @ApiResponse(responseCode = "409", description = "잔액 부족 또는 동시 처리 충돌")
+            @ApiResponse(responseCode = "409", description = "잔액 부족, 1일 이체 한도 초과 또는 동시 처리 충돌")
     })
     @PostMapping("/transfer")
     public ResponseEntity<Void> transfer(@Valid @RequestBody TransferRequestDto request) {
@@ -116,6 +117,19 @@ public class AccountController {
             @ParameterObject @PageableDefault(size = 20, sort = "transactedAt", direction = Sort.Direction.DESC)
             Pageable pageable) {
         return ResponseEntity.ok(accountService.searchTransactions(id, from, to, pageable));
+    }
+
+    // 13장 1일 이체 한도 변경 — 일부 속성만 바꾸므로 PATCH(4장)
+    @Operation(summary = "1일 이체 한도 변경", description = "계좌의 1일 이체 한도를 바꿉니다. 0보다 큰 금액이어야 합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "변경 성공(바뀐 한도가 담긴 계좌 정보)"),
+            @ApiResponse(responseCode = "400", description = "한도 누락 또는 0 이하"),
+            @ApiResponse(responseCode = "404", description = "계좌 없음")
+    })
+    @PatchMapping("/{id}/limit")
+    public ResponseEntity<AccountResponseDto> updateDailyLimit(
+            @PathVariable Long id, @Valid @RequestBody DailyLimitRequestDto request) {
+        return ResponseEntity.ok(accountService.updateDailyLimit(id, request.getDailyLimit()));
     }
 
     // 12.8절 CSV 다운로드 — CSV는 Service가 만들고(화면과 공유), 여기서는 파일 이름만 붙인다
