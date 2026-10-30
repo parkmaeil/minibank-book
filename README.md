@@ -26,6 +26,33 @@ git diff my-ch06 ch06-end                 # 내 코드와 완성본 비교 — �
 
 IntelliJ IDEA에서는 **Git → Branches → Checkout Tag or Revision…** 에 태그 이름을 입력하면 됩니다.
 
+### 내가 직접 만든 프로젝트와 비교하기
+
+2장에서 Initializr로 직접 만든 `mini-bank` 프로젝트로 계속 따라 한다면, 이 저장소를 `book`이라는 이름으로 연결해 비교합니다.
+저장소에는 `mini-bank/` 폴더가 한 단계 더 있으므로, 태그 이름 뒤에 `:mini-bank`를 붙입니다.
+
+```
+study/
+ ├─ mini-bank/        ← 내가 따라 치는 프로젝트
+ └─ minibank-book/    ← 이 저장소 (git clone)
+```
+
+```bash
+cd study/mini-bank
+git remote add book ../minibank-book       # 한 번만
+git fetch book --tags                      # 저장소를 새로 받았을 때마다
+
+git commit -am "6장 따라 하기"              # 장을 마칠 때마다 커밋
+git diff ch06-end:mini-bank HEAD --stat    # 완성본과 다른 파일 목록
+git diff ch06-end:mini-bank HEAD -- src/main/java/com/itscoding/minibank/service/AccountService.java
+
+# 파일 하나만 완성본으로 가져오기 (막혔을 때)
+git show ch06-end:mini-bank/src/main/java/com/itscoding/minibank/service/AccountService.java > src/main/java/com/itscoding/minibank/service/AccountService.java
+```
+
+16장부터 만드는 `minibank-web`도 같은 방법으로 `ch16-end:minibank-web`과 비교합니다.
+한 장에서 너무 막혔다면 이 저장소에서 `git switch -c my-ch07 ch07-start`로 다음 장의 시작 상태를 받아 이어서 따라 해도 됩니다.
+
 | 장 | 완성 태그 | 이 장에서 추가·변경되는 것 |
 |---|---|---|
 | 2장 프로젝트 시작 | `ch02-end` | Initializr 프로젝트, `Customer`·`Account` POJO, `.gitignore` |
