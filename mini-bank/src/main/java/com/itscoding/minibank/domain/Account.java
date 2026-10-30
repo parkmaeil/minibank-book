@@ -1,64 +1,55 @@
 package com.itscoding.minibank.domain;
 
+import com.itscoding.minibank.exception.InsufficientBalanceException;
+import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
+@Entity
+@Table(name = "account")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Account {
+
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, unique = true, length = 20)
     private String accountNumber;
-    private String ownerName;
+
+    @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal balance;
+
+    @Column(nullable = false)
     private LocalDateTime openedAt;
 
-    // 1) 기본 생성자
-    public Account() {
-    }
+    // 여러 계좌는 한 고객에게 속한다 (N:1 단방향) — FK(customer_id)를 가진 쪽만 상대를 참조한다
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id")
+    private Customer customer;
 
-    // 2) 전체 필드 생성자
-    public Account(Long id, String accountNumber, String ownerName,
-                   BigDecimal balance, LocalDateTime openedAt) {
-        this.id = id;
+    @Version                       // 계좌 이체 동시성 제어용 낙관적 락
+    private Long version;
+
+    public Account(String accountNumber, BigDecimal balance) {
         this.accountNumber = accountNumber;
-        this.ownerName = ownerName;
         this.balance = balance;
-        this.openedAt = openedAt;
+        this.openedAt = LocalDateTime.now();
     }
 
-    // 3) Getter / Setter
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getAccountNumber() { return accountNumber; }
-    public void setAccountNumber(String accountNumber) { this.accountNumber = accountNumber; }
-    public String getOwnerName() { return ownerName; }
-    public void setOwnerName(String ownerName) { this.ownerName = ownerName; }
-    public BigDecimal getBalance() { return balance; }
-    public void setBalance(BigDecimal balance) { this.balance = balance; }
-    public LocalDateTime getOpenedAt() { return openedAt; }
-    public void setOpenedAt(LocalDateTime openedAt) { this.openedAt = openedAt; }
+    // 계좌를 고객에게 연결한다 — 이 값이 그대로 account.customer_id(FK)로 저장된다
+    public void assignCustomer(Customer customer) { this.customer = customer; }
 
-    // 4) equals() / hashCode() / toString()
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Account account = (Account) o;
-        return Objects.equals(id, account.id);
+    public void withdraw(BigDecimal amount) {
+        if (this.balance.compareTo(amount) < 0) {
+            throw new InsufficientBalanceException(this.accountNumber);
+        }
+        this.balance = this.balance.subtract(amount);
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return "Account{" +
-                "id=" + id +
-                ", accountNumber='" + accountNumber + '\'' +
-                ", ownerName='" + ownerName + '\'' +
-                ", balance=" + balance +
-                ", openedAt=" + openedAt +
-                '}';
-    }
+    public void deposit(BigDecimal amount) { this.balance = this.balance.add(amount); }
 }

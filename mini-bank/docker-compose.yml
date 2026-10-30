@@ -1,0 +1,14 @@
+services:
+  mysql:
+    image: mysql:8.4.0
+    container_name: minibank-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: minibank1234!
+      MYSQL_DATABASE: minibank
+      MYSQL_USER: minibank
+      MYSQL_PASSWORD: minibank1234!
+    ports:
+      - "3306:3306"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
