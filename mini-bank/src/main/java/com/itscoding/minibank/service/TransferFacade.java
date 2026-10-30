@@ -16,8 +16,19 @@ public class TransferFacade {
 
     private static final int MAX_ATTEMPTS = 3;
     private final AccountService accountService;   // 다른 Bean → 프록시를 거쳐 매번 새 트랜잭션
+    private final AuditService auditService;       // 12.2절 실패 기록도 이곳에서 — API와 화면이 같은 규칙을 쓴다
 
+    // 이체의 단 하나의 입구: 충돌하면 재시도하고(7.8절), 끝내 실패하면 기록을 남긴다(7.6절)
     public void transferWithRetry(TransferRequestDto request) {
+        try {
+            retry(request);
+        } catch (RuntimeException e) {
+            auditService.recordFailure("TRANSFER", e.getMessage());  // 이체가 롤백돼도 기록은 남는다
+            throw e;                                                 // 실패 사실은 호출한 쪽에 그대로 알린다
+        }
+    }
+
+    private void retry(TransferRequestDto request) {
         for (int attempt = 1; ; attempt++) {
             try {
                 accountService.transfer(request);

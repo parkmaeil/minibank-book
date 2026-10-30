@@ -2,13 +2,17 @@ package com.itscoding.minibank.service;
 
 import com.itscoding.minibank.domain.Account;
 import com.itscoding.minibank.domain.Customer;
+import com.itscoding.minibank.domain.TransactionHistory;
+import com.itscoding.minibank.domain.TransactionType;
 import com.itscoding.minibank.dto.AccountCreateRequestDto;
 import com.itscoding.minibank.dto.AccountResponseDto;
+import com.itscoding.minibank.dto.TransactionResponseDto;
 import com.itscoding.minibank.dto.TransferRequestDto;
 import com.itscoding.minibank.exception.AccountNotFoundException;
 import com.itscoding.minibank.exception.CustomerNotFoundException;
 import com.itscoding.minibank.repository.AccountRepository;
 import com.itscoding.minibank.repository.CustomerRepository;
+import com.itscoding.minibank.repository.TransactionHistoryRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Random;
 
@@ -26,6 +33,8 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
     private final CustomerRepository customerRepository;   // 고객 조회를 위해 추가
+    // 🔥 12장 필드 추가
+    private final TransactionHistoryRepository transactionHistoryRepository;
 
     @Transactional
     public AccountResponseDto createAccount(AccountCreateRequestDto request) {
@@ -75,6 +84,61 @@ public class AccountService {
         from.withdraw(request.getAmount());   // 잔액 부족 시 InsufficientBalanceException
         to.deposit(request.getAmount());
         // save()를 호출하지 않아도 Dirty Checking으로 두 계좌 모두 UPDATE된다
+
+        // 12.4절 거래내역도 같은 트랜잭션 안에서 저장한다
+        transactionHistoryRepository.save(new TransactionHistory(
+                from, TransactionType.WITHDRAW, request.getAmount(),
+                from.getBalance(), "이체 출금 → " + to.getAccountNumber()));
+        transactionHistoryRepository.save(new TransactionHistory(
+                to, TransactionType.DEPOSIT, request.getAmount(),
+                to.getBalance(), "이체 입금 ← " + from.getAccountNumber()));
+    }
+
+    // 🔥 12.4절 거래내역 조회
+    @Transactional(readOnly = true)
+    public List<TransactionResponseDto> getTransactionHistory(Long accountId) {
+        return transactionHistoryRepository.findByAccountIdOrderByTransactedAtDesc(accountId)
+                .stream()
+                .map(TransactionResponseDto::from)
+                .toList();
+    }
+
+    // 12.7절 거래내역 기간 검색과 페이징
+    @Transactional(readOnly = true)
+    public Page<TransactionResponseDto> searchTransactions(
+            Long accountId, LocalDate from, LocalDate to, Pageable pageable) {
+        if (from.isAfter(to)) {
+            throw new IllegalArgumentException("시작일이 종료일보다 늦을 수 없습니다.");
+        }
+        return transactionHistoryRepository
+                .findByAccountIdAndTransactedAtBetween(
+                        accountId, from.atStartOfDay(), to.plusDays(1).atStartOfDay(), pageable)
+                .map(TransactionResponseDto::from);
+    }
+
+    // 12.8절 거래내역 CSV — API와 화면이 같은 파일을 내려받도록 한 곳에서 만든다
+    @Transactional(readOnly = true)
+    public byte[] exportTransactionsCsv(Long accountId) {
+        DateTimeFormatter time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        StringBuilder csv = new StringBuilder("\uFEFF");   // UTF-8 BOM: 엑셀의 한글 깨짐 방지
+        csv.append("구분,금액,거래후잔액,거래일시,메모\n");
+        for (TransactionResponseDto t : getTransactionHistory(accountId)) {
+            csv.append(t.getType() == TransactionType.DEPOSIT ? "입금" : "출금").append(',')
+               .append(t.getAmount().toPlainString()).append(',')
+               .append(t.getBalanceAfter().toPlainString()).append(',')
+               .append(t.getTransactedAt().format(time)).append(',')
+               .append(csvEscape(t.getDescription())).append('\n');
+        }
+        return csv.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    // 값에 쉼표·따옴표·줄바꿈이 있으면 큰따옴표로 감싸고, 안의 따옴표는 두 번 쓴다
+    private String csvEscape(String v) {
+        if (v == null) return "";
+        if (v.contains(",") || v.contains("\"") || v.contains("\n")) {
+            return "\"" + v.replace("\"", "\"\"") + "\"";
+        }
+        return v;
     }
 
     private String generateAccountNumber() {

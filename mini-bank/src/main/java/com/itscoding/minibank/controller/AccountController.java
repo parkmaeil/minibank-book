@@ -2,9 +2,9 @@ package com.itscoding.minibank.controller;
 
 import com.itscoding.minibank.dto.AccountCreateRequestDto;
 import com.itscoding.minibank.dto.AccountResponseDto;
+import com.itscoding.minibank.dto.TransactionResponseDto;
 import com.itscoding.minibank.dto.TransferRequestDto;
 import com.itscoding.minibank.service.AccountService;
-import com.itscoding.minibank.service.AuditService;
 import com.itscoding.minibank.service.TransferFacade;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -15,11 +15,15 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Tag(name = "계좌", description = "계좌 개설·조회·이체 API")
@@ -29,8 +33,7 @@ import java.util.List;
 public class AccountController {
 
     private final AccountService accountService;
-    private final AuditService auditService;        // 7.6절 실패 기록(REQUIRES_NEW)
-    private final TransferFacade transferFacade;    // 7.8절 낙관적 락 충돌 재시도
+    private final TransferFacade transferFacade;    // 7.8절 재시도 + 12.2절 실패 기록까지 맡는 이체 입구
 
     // POST /api/accounts (계좌 생성)
     @Operation(summary = "계좌 개설", description = "등록된 고객에게 새 계좌를 개설합니다.")
@@ -85,12 +88,44 @@ public class AccountController {
     })
     @PostMapping("/transfer")
     public ResponseEntity<Void> transfer(@Valid @RequestBody TransferRequestDto request) {
-        try {
-            transferFacade.transferWithRetry(request);              // 7.8절 충돌 시 재시도
-        } catch (RuntimeException e) {
-            auditService.recordFailure("TRANSFER", e.getMessage());  // 7.6절 이체가 롤백돼도 기록은 남는다
-            throw e;                                                 // 응답은 전역 예외 처리기가 만든다
-        }
+        transferFacade.transferWithRetry(request);   // 재시도·실패 기록은 Facade가 맡는다(12.2절), 실패 응답은 전역 예외 처리기가
         return ResponseEntity.ok().build();   // 성공 시 200 OK
+    }
+
+    // 12.4절 거래내역 조회 (최신순)
+    @Operation(summary = "계좌 거래내역 조회", description = "계좌 id로 거래내역을 최신순으로 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공(거래가 없으면 빈 목록)")
+    })
+    @GetMapping("/{id}/transactions")
+    public ResponseEntity<List<TransactionResponseDto>> getTransactions(@PathVariable Long id) {
+        return ResponseEntity.ok(accountService.getTransactionHistory(id));
+    }
+
+    // 12.7절 — 예: GET /api/accounts/1/transactions/search?from=2026-10-01&to=2026-10-31&page=0&size=20
+    @Operation(summary = "거래내역 기간 검색", description = "시작일~종료일(종료일 포함) 거래를 최신순으로 나눠 조회합니다. 날짜는 2026-11-01 형식입니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "400", description = "시작일이 종료일보다 늦음 또는 날짜 형식 오류")
+    })
+    @GetMapping("/{id}/transactions/search")
+    public ResponseEntity<Page<TransactionResponseDto>> searchTransactions(
+            @PathVariable Long id,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @ParameterObject @PageableDefault(size = 20, sort = "transactedAt", direction = Sort.Direction.DESC)
+            Pageable pageable) {
+        return ResponseEntity.ok(accountService.searchTransactions(id, from, to, pageable));
+    }
+
+    // 12.8절 CSV 다운로드 — CSV는 Service가 만들고(화면과 공유), 여기서는 파일 이름만 붙인다
+    @Operation(summary = "거래내역 CSV 다운로드", description = "거래내역을 UTF-8(BOM) CSV 파일로 내려받습니다.")
+    @GetMapping(value = "/{id}/transactions.csv", produces = "text/csv")
+    public ResponseEntity<byte[]> downloadTransactions(@PathVariable Long id) {
+        // Content-Disposition: attachment → 브라우저가 화면에 띄우지 않고 파일로 저장한다
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"transactions-" + id + ".csv\"")
+                .body(accountService.exportTransactionsCsv(id));
     }
 }
