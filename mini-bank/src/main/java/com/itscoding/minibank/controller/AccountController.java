@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -22,6 +23,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
@@ -32,6 +35,7 @@ import java.util.List;
 @RestController // JSON 데이터를 반환하는 RESTful 컨트롤러임을 명시합니다.
 @RequestMapping("/api/accounts") // 이 컨트롤러의 기본 URL 경로를 설정합니다.
 @RequiredArgsConstructor
+@Slf4j
 public class AccountController {
 
     private final AccountService accountService;
@@ -87,7 +91,11 @@ public class AccountController {
             @ApiResponse(responseCode = "409", description = "잔액 부족 또는 동시 처리 충돌")
     })
     @PostMapping("/transfer")
-    public ResponseEntity<Void> transfer(@Valid @RequestBody TransferRequestDto request) {
+    public ResponseEntity<Void> transfer(@Valid @RequestBody TransferRequestDto request,
+                                         @AuthenticationPrincipal UserDetails user) {
+        // 14.5절 누가 이체를 요청했는지 기록한다
+        log.info("이체 요청 - by={}, from={}, to={}, amount={}", user.getUsername(),
+                request.getFromAccountNumber(), request.getToAccountNumber(), request.getAmount());
         try {
             transferFacade.transferWithRetry(request);              // 7.8절 충돌 시 재시도
         } catch (RuntimeException e) {
