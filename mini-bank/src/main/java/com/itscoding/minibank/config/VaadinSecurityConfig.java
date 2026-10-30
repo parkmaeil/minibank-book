@@ -21,7 +21,10 @@ public class VaadinSecurityConfig {
         // Swagger UI 화면과 API 문서(JSON)는 로그인 없이 연다 (API 호출 자체는 Basic 인증이 필요하다)
         // /error는 오류 응답을 만드는 주소 — 막으면 원래 오류(예: API의 401)가 403으로 덮인다
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/error").permitAll());
+                .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/error").permitAll()
+                // 20.6절 상태 확인(health)은 누구나, 나머지 Actuator는 관리자만
+                .requestMatchers("/actuator/health").permitAll()
+                .requestMatchers("/actuator/**").hasRole("ADMIN"));
 
         // Vaadin 전용 설정 — 로그인 화면 지정, Vaadin 내부 요청의 CSRF 처리, 화면별 접근 규칙(@PermitAll 등)
         http.with(VaadinSecurityConfigurer.vaadin(), vaadin -> vaadin.loginView(LoginView.class));
