@@ -10,6 +10,7 @@ import com.itscoding.minibank.dto.TransactionResponseDto;
 import com.itscoding.minibank.dto.TransferRequestDto;
 import com.itscoding.minibank.exception.AccountNotFoundException;
 import com.itscoding.minibank.exception.CustomerNotFoundException;
+import com.itscoding.minibank.exception.DailyLimitExceededException;
 import com.itscoding.minibank.repository.AccountRepository;
 import com.itscoding.minibank.repository.CustomerRepository;
 import com.itscoding.minibank.repository.TransactionHistoryRepository;
@@ -20,7 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 
@@ -79,6 +82,8 @@ public class AccountService {
         Account to = accountRepository.findByAccountNumber(request.getToAccountNumber())
                 .orElseThrow(() -> new AccountNotFoundException(request.getToAccountNumber()));
 
+        validateDailyLimit(from, request.getAmount());   // 🔥 13장 출금 전에 한도 검증
+
         from.withdraw(request.getAmount());   // 잔액 부족 시 InsufficientBalanceException
         to.deposit(request.getAmount());
         // save()를 호출하지 않아도 Dirty Checking으로 두 계좌 모두 UPDATE된다
@@ -112,6 +117,30 @@ public class AccountService {
                 .findByAccountIdAndTransactedAtBetween(
                         accountId, from.atStartOfDay(), to.plusDays(1).atStartOfDay(), pageable)
                 .map(TransactionResponseDto::from);
+    }
+
+    // 13장 1일 이체 한도 변경
+    @Transactional
+    public AccountResponseDto updateDailyLimit(Long accountId, BigDecimal newLimit) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new AccountNotFoundException(accountId));
+        account.changeDailyLimit(newLimit);   // Dirty Checking으로 UPDATE
+        return AccountResponseDto.from(account);
+    }
+
+    private void validateDailyLimit(Account account, BigDecimal requestAmount) {
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = startOfDay.plusDays(1);
+        BigDecimal usedToday = transactionHistoryRepository
+                .findByAccountIdAndTypeAndTransactedAtBetween(
+                        account.getId(), TransactionType.WITHDRAW, startOfDay, endOfDay)
+                .stream().map(TransactionHistory::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (usedToday.add(requestAmount).compareTo(account.getDailyLimit()) > 0) {
+            throw new DailyLimitExceededException(
+                    account.getAccountNumber(), account.getDailyLimit(), usedToday);
+        }
     }
 
     private String generateAccountNumber() {

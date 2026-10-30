@@ -2,6 +2,7 @@ package com.itscoding.minibank.controller;
 
 import com.itscoding.minibank.dto.AccountCreateRequestDto;
 import com.itscoding.minibank.dto.AccountResponseDto;
+import com.itscoding.minibank.dto.DailyLimitRequestDto;
 import com.itscoding.minibank.dto.TransactionResponseDto;
 import com.itscoding.minibank.dto.TransferRequestDto;
 import com.itscoding.minibank.service.AccountService;
@@ -98,6 +99,14 @@ public class AccountController {
             @PageableDefault(size = 20, sort = "transactedAt", direction = Sort.Direction.DESC)
             Pageable pageable) {
         return ResponseEntity.ok(accountService.searchTransactions(id, from, to, pageable));
+    }
+
+    // 13장 1일 이체 한도 변경
+    @Operation(summary = "1일 이체 한도 변경")
+    @PatchMapping("/{id}/limit")
+    public ResponseEntity<AccountResponseDto> updateDailyLimit(
+            @PathVariable Long id, @Valid @RequestBody DailyLimitRequestDto request) {
+        return ResponseEntity.ok(accountService.updateDailyLimit(id, request.getDailyLimit()));
     }
 
     // 12.8절 CSV 다운로드

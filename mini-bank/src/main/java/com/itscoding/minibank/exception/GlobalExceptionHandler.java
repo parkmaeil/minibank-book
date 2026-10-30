@@ -46,6 +46,14 @@ public class GlobalExceptionHandler {
                 .body(Map.of("message", e.getMessage()));
     }
 
+    // [13장 추가] 1일 이체 한도 초과 (409)
+    @ExceptionHandler(DailyLimitExceededException.class)
+    public ResponseEntity<Map<String, String>> handleDailyLimit(
+            DailyLimitExceededException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("message", e.getMessage()));
+    }
+
     // 🔥 [신규] 잘못된 요청 값 (예: 같은 계좌로 이체, 0 이하의 한도) (400)
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgument(
