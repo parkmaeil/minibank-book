@@ -50,6 +50,8 @@ git diff ch06-end:mini-bank HEAD -- src/main/java/com/itscoding/minibank/service
 git show ch06-end:mini-bank/src/main/java/com/itscoding/minibank/service/AccountService.java > src/main/java/com/itscoding/minibank/service/AccountService.java
 ```
 
+> Windows PowerShell 5에서 `>`로 저장하면 파일이 UTF-16으로 바뀌어 한글 주석이 든 Java 파일이 깨집니다. 이 명령은 Git Bash에서 실행하거나, GitHub 웹에서 태그를 고른 뒤 파일 내용을 복사해 붙여 넣으세요.
+
 16장부터 만드는 `minibank-web`도 같은 방법으로 `ch16-end:minibank-web`과 비교합니다.
 한 장에서 너무 막혔다면 이 저장소에서 `git switch -c my-ch07 ch07-start`로 다음 장의 시작 상태를 받아 이어서 따라 해도 됩니다.
 
