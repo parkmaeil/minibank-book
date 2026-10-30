@@ -26,6 +26,7 @@ public class SecurityConfig {
             // 이 규칙은 /api/** 요청에만 적용 (나머지는 14.7절의 관리 화면 체인이 맡는다)
             .securityMatcher("/api/**")
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/interest/**").hasRole("ADMIN")          // 15.5절 이자 수동 실행은 관리자만
                 .requestMatchers(HttpMethod.GET, "/api/**").hasAnyRole("TELLER", "ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/customers/**").hasRole("ADMIN")
                 .requestMatchers("/api/**").hasAnyRole("TELLER", "ADMIN")
