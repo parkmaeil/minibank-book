@@ -43,3 +43,6 @@ Thumbs.db
 ### 비밀 정보가 들어갈 수 있는 파일 (11.7절) ###
 .env
 application-local.properties
+
+### 로그 파일 (3.8절) ###
+logs/
