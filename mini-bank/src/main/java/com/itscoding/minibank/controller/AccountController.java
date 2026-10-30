@@ -24,10 +24,11 @@ public class AccountController {
     private final AccountService accountService;
 
     // POST /api/accounts (계좌 생성)
-    @Operation(summary = "계좌 개설", description = "새 계좌를 개설합니다.")
+    @Operation(summary = "계좌 개설", description = "등록된 고객에게 새 계좌를 개설합니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "개설 성공"),
-        @ApiResponse(responseCode = "400", description = "입력값 검증 실패")
+        @ApiResponse(responseCode = "400", description = "입력값 검증 실패"),
+        @ApiResponse(responseCode = "404", description = "고객 없음")
     })
     @PostMapping
     public ResponseEntity<AccountResponseDto> createAccount(
