@@ -2,6 +2,7 @@ package com.itscoding.minibank.service;
 
 import com.itscoding.minibank.domain.AuditLog;
 import com.itscoding.minibank.repository.AuditLogRepository;
+import com.itscoding.minibank.security.CurrentUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -18,6 +19,8 @@ public class AuditService {
     // 호출한 쪽의 트랜잭션과 별개로, 항상 새 트랜잭션에서 저장하고 바로 커밋한다
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void recordFailure(String action, String detail) {
-        auditLogRepository.save(new AuditLog(action, detail, LocalDateTime.now()));
+        // 14.8절 누가 실행했는지 함께 남긴다 (예: "by=teller | 잔액이 부족합니다.")
+        String withUser = "by=" + CurrentUser.username() + " | " + detail;
+        auditLogRepository.save(new AuditLog(action, withUser, LocalDateTime.now()));
     }
 }

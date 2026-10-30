@@ -1,11 +1,15 @@
 package com.itscoding.minibank.config;
 
+import com.itscoding.minibank.domain.Staff;
+import com.itscoding.minibank.domain.StaffRole;
 import com.itscoding.minibank.dto.CustomerCreateRequestDto;
 import com.itscoding.minibank.repository.CustomerRepository;
+import com.itscoding.minibank.repository.StaffRepository;
 import com.itscoding.minibank.service.CustomerService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 // 3.5절에서 소개한 예제 — CustomerService가 생긴 6장부터 실제로 동작한다
@@ -16,9 +20,23 @@ public class SampleDataLoader {
 
     private final CustomerService customerService;
     private final CustomerRepository customerRepository;
+    private final StaffRepository staffRepository;     // 14.5절
+    private final PasswordEncoder passwordEncoder;     // 14.5절
 
     @PostConstruct
     void load() {
+        loadTeller();
+        loadCustomers();
+    }
+
+    // 14.5절 개발용 창구 직원 계정 (관리자는 StaffInitializer가 만든다)
+    private void loadTeller() {
+        if (staffRepository.existsByUsername("teller")) return;
+        staffRepository.save(new Staff("teller", passwordEncoder.encode("teller1234!"),
+                "김창구", StaffRole.TELLER));
+    }
+
+    private void loadCustomers() {
         // 고객이 한 명이라도 있으면 건너뛴다 — 목록 전체가 아니라 개수만 센다(select count(*) 한 번)
         if (customerRepository.count() > 0) return;
         for (String name : new String[]{"홍길동", "김민준", "이서연"}) {

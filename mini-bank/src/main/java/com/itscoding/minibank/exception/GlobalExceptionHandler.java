@@ -3,6 +3,7 @@ package com.itscoding.minibank.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -60,6 +61,13 @@ public class GlobalExceptionHandler {
             IllegalArgumentException e) {
         return ResponseEntity.badRequest()
                 .body(Map.of("message", e.getMessage()));
+    }
+
+    // [14장 추가] 권한 부족 — Service의 @PreAuthorize가 거부한 요청 (403)
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, String>> handleForbidden(AccessDeniedException e) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("message", "이 작업을 할 권한이 없습니다."));
     }
 
     // 🔥 [신규] 낙관적 락 충돌 — 다른 요청이 같은 계좌를 먼저 수정함 (409)
