@@ -10,6 +10,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -54,6 +57,14 @@ public class AccountController {
     @GetMapping
     public ResponseEntity<List<AccountResponseDto>> getAllAccounts() {
         return ResponseEntity.ok(accountService.getAllAccounts());
+    }
+
+    // 8.7절 — 예: GET /api/accounts/page?page=0&size=10&sort=balance,desc
+    @Operation(summary = "계좌 목록 페이지 조회")
+    @GetMapping("/page")
+    public ResponseEntity<Page<AccountResponseDto>> getAccountPage(
+            @PageableDefault(size = 10, sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(accountService.getAccountPage(pageable));
     }
 
     // 🔥 [7장] 계좌 이체 엔드포인트
