@@ -1,10 +1,12 @@
 package com.itscoding.minibank.service;
 
+import com.itscoding.minibank.TestcontainersConfiguration;
 import com.itscoding.minibank.domain.Account;
 import com.itscoding.minibank.repository.AccountRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.math.BigDecimal;
@@ -19,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 // 5.7절 동시 출금 실험 — transfer()가 생긴 7장부터 실행할 수 있다
 @SpringBootTest
+@Import(TestcontainersConfiguration.class)   // 10.6절부터 실제 MySQL 컨테이너로 실행
 class ConcurrentWithdrawTest {
 
     @Autowired AccountService accountService;
