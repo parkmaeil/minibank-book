@@ -1,0 +1,10 @@
+build/
+.gradle/
+.idea/
+.git/
+logs/
+.env
+# Vaadin이 개발 모드에서 만드는 파일 (9.1절) — 이미지 안에서 새로 빌드한다
+src/main/frontend/generated/
+target/
+node_modules/
