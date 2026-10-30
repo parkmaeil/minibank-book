@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.1.2'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.vaadin' version '25.3.4'              // 11.1절 🔥 ext의 vaadinVersion과 동일
 	id 'jacoco'                                    // 10.7절 테스트 커버리지
 }
 
@@ -52,6 +53,12 @@ dependencyManagement {
 	imports {
 		mavenBom "com.vaadin:vaadin-bom:${vaadinVersion}"
 	}
+}
+
+// 11.1절 실행할 수 없는 -plain.jar를 만들지 않도록 끈다
+// (build/libs에 Jar가 하나만 남아야 Dockerfile의 COPY *.jar가 실패하지 않는다)
+jar {
+	enabled = false
 }
 
 // 10.7절 JaCoCo 보고서 (build/reports/jacoco/test/html/index.html)

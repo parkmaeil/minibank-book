@@ -1,14 +1,30 @@
+# 11.4·11.7절 앱 + MySQL 통합판 (비밀번호는 .env에서 읽는다 — .env.example 참고)
 services:
   mysql:
     image: mysql:8.4.0
-    container_name: minibank-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: minibank1234!
       MYSQL_DATABASE: minibank
       MYSQL_USER: minibank
-      MYSQL_PASSWORD: minibank1234!
-    ports:
-      - "3306:3306"
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      mysql:
+        condition: service_healthy   # MySQL이 healthy가 된 뒤에 시작
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/minibank
+      DB_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8080:8080"
