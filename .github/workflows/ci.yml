@@ -25,3 +25,19 @@ jobs:
 
       - name: 빌드와 테스트
         run: ./gradlew build        # Testcontainers가 GitHub Actions의 Docker로 MySQL을 띄운다
+
+  # 19.6절 프론트엔드 작업 추가
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: minibank-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: minibank-web/package-lock.json
+      - run: npm ci
+      - run: npm run build          # TypeScript 타입 검사(tsc)와 빌드를 함께 수행

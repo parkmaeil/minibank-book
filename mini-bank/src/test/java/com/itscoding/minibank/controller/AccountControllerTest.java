@@ -1,5 +1,6 @@
 package com.itscoding.minibank.controller;
 
+import com.itscoding.minibank.auth.JwtConfig;
 import com.itscoding.minibank.config.SecurityConfig;
 import com.itscoding.minibank.dto.AccountCreateRequestDto;
 import com.itscoding.minibank.dto.AccountResponseDto;
@@ -27,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AccountController.class)
-@Import(SecurityConfig.class)              // 14.6절 슬라이스 테스트에 우리 보안 규칙을 포함
+@Import({SecurityConfig.class, JwtConfig.class})   // 14.6절 보안 규칙 포함 (19장부터 JWT 설정도 함께)
 class AccountControllerTest {
 
     @Autowired

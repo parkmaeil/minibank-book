@@ -22,9 +22,21 @@ public class Customer {
     @Column(length = 20)
     private String phone;
 
+    // 19.2절 고객 로그인 계정
+    @Column(unique = true, length = 30)
+    private String username;
+
+    @Column(length = 100)
+    private String password;          // BCrypt 해시 (원문 저장 금지)
+
     public Customer(String name, String phone) {
         this.name = name;
         this.phone = phone;
+    }
+
+    public void assignLogin(String username, String encodedPassword) {
+        this.username = username;
+        this.password = encodedPassword;
     }
 
     public void updateInfo(String name, String phone) {

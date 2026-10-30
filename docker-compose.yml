@@ -1,0 +1,39 @@
+# 19.6절 풀스택 배포 — MySQL + Spring Boot(app) + React/Nginx(web)
+# 실행: cp .env.example .env  →  docker compose up --build  →  http://localhost
+services:
+  mysql:
+    image: mysql:8.4.0
+    environment:
+      MYSQL_DATABASE: minibank
+      MYSQL_USER: minibank
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: ./mini-bank
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/minibank
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    # 외부 포트를 열지 않는다 — web(Nginx)을 통해서만 접근
+    # (Vaadin 직원 화면까지 열어 보려면 아래 두 줄의 주석을 푼다)
+    # ports:
+    #   - "8080:8080"
+
+  web:
+    build: ./minibank-web
+    ports:
+      - "80:80"
+    depends_on:
+      - app

@@ -24,6 +24,9 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
 
     boolean existsByCustomerId(Long customerId);
 
+    // 19.4절 고객 한 명의 계좌 목록
+    List<Account> findByCustomerIdOrderByIdAsc(Long customerId);
+
     // 5.7절 비관적 락 — SELECT ... FOR UPDATE
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM Account a WHERE a.accountNumber = :accountNumber")

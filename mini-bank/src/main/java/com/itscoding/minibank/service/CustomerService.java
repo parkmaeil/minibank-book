@@ -8,6 +8,7 @@ import com.itscoding.minibank.exception.CustomerNotFoundException;
 import com.itscoding.minibank.repository.AccountRepository;
 import com.itscoding.minibank.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository;
     private final AccountRepository accountRepository;      // 6.2절 계좌 수·보유 여부를 묻는다
+    private final PasswordEncoder passwordEncoder;          // 19.2절
 
     @Transactional
     public Long createCustomer(CustomerCreateRequestDto request) {
@@ -52,6 +54,17 @@ public class CustomerService {
                 .orElseThrow(() -> new CustomerNotFoundException(id));
         customer.updateInfo(request.getName(), request.getPhone());
         // save()를 호출하지 않아도 커밋 시점에 UPDATE가 실행된다 (6.3절)
+    }
+
+    // 19.2절 직원이 고객에게 로그인 계정을 발급한다
+    @Transactional
+    public void issueLogin(Long customerId, String username, String rawPassword) {
+        if (customerRepository.existsByUsername(username)) {
+            throw new IllegalStateException("이미 사용 중인 아이디입니다.");
+        }
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId));
+        customer.assignLogin(username, passwordEncoder.encode(rawPassword));
     }
 
     @Transactional
