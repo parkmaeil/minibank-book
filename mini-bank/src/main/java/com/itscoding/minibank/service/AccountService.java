@@ -8,12 +8,15 @@ import com.itscoding.minibank.dto.AccountCreateRequestDto;
 import com.itscoding.minibank.dto.AccountResponseDto;
 import com.itscoding.minibank.dto.TransactionResponseDto;
 import com.itscoding.minibank.dto.TransferRequestDto;
+import com.itscoding.minibank.event.TransferCompletedEvent;
 import com.itscoding.minibank.exception.AccountNotFoundException;
 import com.itscoding.minibank.exception.CustomerNotFoundException;
 import com.itscoding.minibank.exception.DailyLimitExceededException;
 import com.itscoding.minibank.repository.AccountRepository;
 import com.itscoding.minibank.repository.CustomerRepository;
 import com.itscoding.minibank.repository.TransactionHistoryRepository;
+import com.itscoding.minibank.security.CurrentUser;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +44,7 @@ public class AccountService {
     // 🔥 12장 필드 추가
     private final TransactionHistoryRepository transactionHistoryRepository;
     private final Clock clock;   // 13장 "오늘"을 정하는 시계 — 3.6절 AppConfig의 Bean(Asia/Seoul), 테스트에서는 고정 시계
+    private final ApplicationEventPublisher eventPublisher;   // 15.2절 이체 완료 이벤트 발행
 
     @Transactional
     public AccountResponseDto createAccount(AccountCreateRequestDto request) {
@@ -100,6 +104,11 @@ public class AccountService {
         transactionHistoryRepository.save(new TransactionHistory(
                 to, TransactionType.DEPOSIT, request.getAmount(),
                 to.getBalance(), "이체 입금 ← " + from.getAccountNumber()));
+
+        // 15.2절 이체 완료 이벤트 발행 — 실제 처리(알림)는 커밋된 뒤 리스너가 맡는다
+        eventPublisher.publishEvent(new TransferCompletedEvent(
+                from.getAccountNumber(), to.getAccountNumber(), request.getAmount(),
+                CurrentUser.username(), LocalDateTime.now(clock)));
     }
 
     // 🔥 12.4절 거래내역 조회
