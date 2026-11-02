@@ -54,6 +54,13 @@ git show ch06-end:mini-bank/src/main/java/com/itscoding/minibank/service/Account
 
 `gradle/wrapper/*`, `gradlew`, `gradlew.bat`은 Initializr로 프로젝트를 만든 날짜에 따라 Gradle 버전이 달라 차이가 날 수 있으며, 무시해도 됩니다.
 
+**diff가 0일 필요는 없습니다.** 비교는 채점이 아니라 막혔을 때 원인을 찾는 도구입니다. 내 코드가 맞는지는 이 순서로 확인하세요.
+
+1. 실행 결과가 책과 같은지, 6장부터는 `gradlew test`가 통과하는지 확인합니다. 통과하면 끝입니다.
+2. 막혔다면 `git diff --stat ch06-start ch06-end`로 이 장이 바꾼 파일만 골라 `git diff -w`로 비교합니다.
+3. 들여쓰기·빈 줄·주석·메서드 순서·변수 이름 차이는 무시하고, 빠진 애노테이션·의존성·설정 값을 찾습니다.
+4. 그래도 안 되면 파일을 가져오거나 다음 장의 `chNN-start`에서 이어 갑니다.
+
 16장부터 만드는 `minibank-web`도 같은 방법으로 `ch16-end:minibank-web`과 비교합니다.
 한 장에서 너무 막혔다면 이 저장소에서 `git switch -c my-ch07 ch07-start`로 다음 장의 시작 상태를 받아 이어서 따라 해도 됩니다.
 
