@@ -43,14 +43,16 @@ git remote add book ../minibank-book       # 한 번만
 git fetch book --tags                      # 저장소를 새로 받았을 때마다
 
 git commit -am "6장 따라 하기"              # 장을 마칠 때마다 커밋
-git diff ch06-end:mini-bank HEAD --stat    # 완성본과 다른 파일 목록
-git diff ch06-end:mini-bank HEAD -- src/main/java/com/itscoding/minibank/service/AccountService.java
+git diff -w --stat ch06-end:mini-bank HEAD    # 완성본과 다른 파일 목록 (-w: 공백 차이 무시)
+git diff -w ch06-end:mini-bank HEAD -- src/main/java/com/itscoding/minibank/service/AccountService.java
 
 # 파일 하나만 완성본으로 가져오기 (막혔을 때)
 git show ch06-end:mini-bank/src/main/java/com/itscoding/minibank/service/AccountService.java > src/main/java/com/itscoding/minibank/service/AccountService.java
 ```
 
 > Windows PowerShell 5에서 `>`로 저장하면 파일이 UTF-16으로 바뀌어 한글 주석이 든 Java 파일이 깨집니다. 이 명령은 Git Bash에서 실행하거나, GitHub 웹에서 태그를 고른 뒤 파일 내용을 복사해 붙여 넣으세요.
+
+`gradle/wrapper/*`, `gradlew`, `gradlew.bat`은 Initializr로 프로젝트를 만든 날짜에 따라 Gradle 버전이 달라 차이가 날 수 있으며, 무시해도 됩니다.
 
 16장부터 만드는 `minibank-web`도 같은 방법으로 `ch16-end:minibank-web`과 비교합니다.
 한 장에서 너무 막혔다면 이 저장소에서 `git switch -c my-ch07 ch07-start`로 다음 장의 시작 상태를 받아 이어서 따라 해도 됩니다.
