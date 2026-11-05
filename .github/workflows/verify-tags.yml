@@ -1,0 +1,43 @@
+name: Verify chapter tags
+
+# 장별 태그(chNN-start / chNN-end)가 모두 빌드되는지 확인한다.
+# 책을 따라 하다 어느 장에서 시작하든, 그 태그의 코드는 컴파일되고 테스트가 통과해야 한다.
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tag: [ ch02-start, ch02-end, ch03-end, ch04-end, ch05-end, ch06-end, ch07-end, ch08-end,
+               ch09-end, ch10-end, ch11-end, ch12-end, ch13-end, ch14-end, ch15-end,
+               ch16-end, ch17-end, ch18-end, ch19-end, ch20-end ]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.tag }}
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: 백엔드 — 10장 이전은 컴파일, 10장부터는 테스트까지
+        working-directory: mini-bank
+        run: |
+          if [ -f src/test/java/com/itscoding/minibank/TestcontainersConfiguration.java ]; then
+            ./gradlew build
+          else
+            ./gradlew compileJava compileTestJava
+          fi
+
+      - name: 프론트엔드 (16장 이후)
+        if: hashFiles('minibank-web/package-lock.json') != ''
+        working-directory: minibank-web
+        run: npm ci && npm run build
