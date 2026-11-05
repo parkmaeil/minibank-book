@@ -56,7 +56,7 @@ git show ch06-end:mini-bank/src/main/java/com/itscoding/minibank/service/Account
 
 **diff가 0일 필요는 없습니다.** 비교는 채점이 아니라 막혔을 때 원인을 찾는 도구입니다. 내 코드가 맞는지는 이 순서로 확인하세요.
 
-1. 실행 결과가 책과 같은지, 6장부터는 `gradlew test`가 통과하는지 확인합니다. 통과하면 끝입니다.
+1. 실행 결과가 책과 같은지, 10장부터는 `gradlew test`가 통과하는지 확인합니다. 통과하면 끝입니다.
 2. 막혔다면 `git diff --stat ch06-start ch06-end`로 이 장이 바꾼 파일만 골라 `git diff -w`로 비교합니다.
 3. 들여쓰기·빈 줄·주석·메서드 순서·변수 이름 차이는 무시하고, 빠진 애노테이션·의존성·설정 값을 찾습니다.
 4. 그래도 안 되면 파일을 가져오거나 다음 장의 `chNN-start`에서 이어 갑니다.
@@ -69,10 +69,10 @@ git show ch06-end:mini-bank/src/main/java/com/itscoding/minibank/service/Account
 | 2장 프로젝트 시작 | `ch02-end` | Initializr 프로젝트, `Customer`·`Account` POJO, `.gitignore` |
 | 3장 Spring Boot의 동작 원리 | `ch03-end` | dev/prod 프로파일, `Clock` Bean, `@ConfigurationProperties`, 파일 로그 |
 | 4장 첫 번째 REST API | `ch04-end` | DTO·Bean Validation, 인메모리 Repository, Service·Controller, 전역 예외 처리, Swagger, `@AccountNumber` |
-| 5장 JPA | `ch05-end` | MySQL(docker compose), 엔티티·`@Version`, `JpaRepository`, 비관적 락 조회, Flyway `V1` |
-| 6장 고객 관리와 연관관계 | `ch06-end` | 고객 CRUD API, 고객-계좌 연결, 이름 검색, 샘플 데이터, 동기화 테스트 |
+| 5장 JPA | `ch05-end` | MySQL(docker compose), 엔티티(계좌 → 고객 N:1 단방향)·`@Version`, `JpaRepository`, 비관적 락 조회, Flyway `V1` |
+| 6장 고객 관리와 연관관계 | `ch06-end` | 고객 CRUD API, 고객-계좌 연결(N:1 단방향), 계좌 수·삭제 규칙을 Repository 쿼리로, 이름 검색, 샘플 데이터 |
 | 7장 계좌 이체와 트랜잭션 | `ch07-end` | `transfer()`, 예외 처리 완성, `AuditService`(REQUIRES_NEW), `TransferFacade`(재시도), 동시 출금 테스트 |
-| 8장 N+1 문제 | `ch08-end` | JOIN FETCH, `@EntityGraph`, DTO 프로젝션, 페이징 API |
+| 8장 N+1 문제 | `ch08-end` | JOIN FETCH, 고객별 계좌 수 DTO 조회(`LEFT JOIN`+`COUNT`), `@EntityGraph`, DTO 프로젝션, 페이징 API |
 | 9장 Vaadin 관리 화면 | `ch09-end` | `MainLayout`·고객/계좌 화면·개설 Dialog·Binder 검증·금액 서식 |
 | 10장 테스트 자동화 | `ch10-end` | Mockito·MockMvc·`@DataJpaTest`·Testcontainers 테스트, JaCoCo |
 | 11장 빌드와 Docker 배포 | `ch11-end` | Vaadin 프로덕션 빌드, 멀티 스테이지 Dockerfile, Compose+healthcheck, `.env`, GitHub Actions |
@@ -86,7 +86,7 @@ git show ch06-end:mini-bank/src/main/java/com/itscoding/minibank/service/Account
 | 19장 로그인과 풀스택 배포 | `ch19-end` | JWT 로그인·내 계좌 API·소유권 검사, React 로그인, Nginx·Compose |
 | 20장 책을 마치며 | `ch20-end` | Actuator |
 
-1장은 코드가 없으므로 태그가 없습니다. 13장은 도전 과제이므로, 직접 풀어 본 뒤에 `ch13-end`와 비교하세요.
+모든 태그는 GitHub Actions의 `Verify chapter tags` 워크플로가 매번 빌드해 확인합니다(10장부터는 테스트까지). 1장은 코드가 없으므로 태그가 없습니다. 13장은 도전 과제이므로, 직접 풀어 본 뒤에 `ch13-end`와 비교하세요.
 
 ## 실행 환경
 
