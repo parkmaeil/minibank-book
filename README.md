@@ -81,9 +81,9 @@ git show ch06-end:mini-bank/src/main/java/com/itscoding/minibank/service/Account
 | 14장 Spring Security | `ch14-end` | Basic 인증, 역할별 URL 규칙, BCrypt, 보안 테스트 |
 | 15장 이벤트와 스케줄링 | `ch15-end` | 이체 완료 이벤트(AFTER_COMMIT·`@Async`), 이자 지급 배치 |
 | 16장 React 시작 | `ch16-end` | Vite react-ts 프로젝트, 타입, 계좌 카드 |
-| 17장 REST API 연결 | `ch17-end` | API 클라이언트, Vite 프록시, 백엔드 CORS, TanStack Query |
-| 18장 웹뱅킹 화면 | `ch18-end` | React Router, 이체 폼, 거래내역 페이지 |
-| 19장 로그인과 풀스택 배포 | `ch19-end` | JWT 로그인·내 계좌 API·소유권 검사, React 로그인, Nginx·Compose |
+| 17장 고객 로그인과 내 계좌 API | `ch17-end` | 고객 계정 발급, JWT 발급·검증, 고객용 필터 체인, 내 계좌 API와 소유권 검사 |
+| 18장 REST API 연결과 로그인 화면 | `ch18-end` | API 클라이언트, Vite 프록시, CORS, TanStack Query, React Router, 로그인 화면 |
+| 19장 이체·거래내역 화면과 풀스택 배포 | `ch19-end` | 이체 폼, 거래내역 페이지, Nginx·Docker Compose |
 | 20장 책을 마치며 | `ch20-end` | Actuator |
 
 모든 태그는 GitHub Actions의 `Verify chapter tags` 워크플로가 매번 빌드해 확인합니다(10장부터는 테스트까지). 1장은 코드가 없으므로 태그가 없습니다. 13장은 도전 과제이므로, 직접 풀어 본 뒤에 `ch13-end`와 비교하세요.
@@ -123,7 +123,7 @@ npm install
 npm run dev                       # http://localhost:5173
 ```
 
-19장에서 고객 로그인 계정을 발급한 뒤 로그인합니다.
+로그인 계정은 17장에서 만든 API로 직원이 발급합니다(18장부터 로그인 화면 사용).
 
 ```bash
 curl -u admin:admin1234! -X POST http://localhost:8080/api/customers/1/login \
@@ -159,8 +159,8 @@ docker compose up --build         # http://localhost  (hong / hong1234!)
 - `ui/AppShell.java` — Vaadin 25부터 기본 테마가 Aura로 바뀌어, 책 화면(Lumo 기준)과 같게 보이도록 `@StyleSheet(Lumo.STYLESHEET)`을 지정했습니다.
 - `TestcontainersConfiguration` — `@SpringBootTest`·`@DataJpaTest`가 로컬 MySQL 없이 돌도록 10장부터 공통 설정으로 묶었습니다.
 - `support/TestDtos` — 책에서 "도우미 메서드(생략)"으로 표시한 테스트용 DTO 생성 메서드입니다.
-- Flyway 마이그레이션 번호 — 장 순서대로 `V1` 초기 스키마 → `V2` 감사 기록 → `V3` 거래내역 → `V4` 1일 한도 → `V5` 이자 기록 → `V6` 고객 로그인.
+- Flyway 마이그레이션 번호 — 장 순서대로 `V1` 초기 스키마 → `V2` 감사 기록 → `V3` 거래내역 → `V4` 1일 한도 → `V5` 직원 계정 → `V6` 이자 기록 → `V7` 고객 로그인.
 - `minibank-web/src/api/client.ts` — 최신 Vite 템플릿의 `erasableSyntaxOnly` 설정 때문에 `ApiError`의 `status`를 필드로 선언했습니다.
-- 18장 태그의 `App.tsx`·`Layout.tsx`에는 아직 로그인 관련 코드가 없고, 19장에서 추가됩니다.
+- 18장 태그의 `App.tsx`·`Layout.tsx`에는 아직 이체·거래내역 경로가 없고, 19장에서 추가됩니다.
 
 오류나 개선 제안은 Issues에 남겨 주세요.
