@@ -32,6 +32,12 @@ public class TransferFacade {
         }
     }
 
+    // 17.4절 고객 이체 — 출금 계좌의 소유권을 확인한 뒤 같은 입구(transferWithRetry)로 보낸다
+    public void transferAsCustomer(Long customerId, TransferRequestDto request) {
+        accountService.verifyOwnership(customerId, request.getFromAccountNumber());   // 남의 계좌면 403
+        transferWithRetry(request);
+    }
+
     private void retry(TransferRequestDto request) {
         for (int attempt = 1; ; attempt++) {
             try {

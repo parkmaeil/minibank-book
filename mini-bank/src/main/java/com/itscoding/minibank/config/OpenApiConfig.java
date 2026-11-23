@@ -10,5 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @OpenAPIDefinition(security = @SecurityRequirement(name = "basicAuth"))
 @SecurityScheme(name = "basicAuth", type = SecuritySchemeType.HTTP, scheme = "basic")
+// 17.5절 고객 API(/api/me/**)는 Bearer 토큰(JWT)으로 시험한다 — [Authorize]에 칸이 하나 더 생긴다
+@SecurityScheme(name = "bearerAuth", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
 public class OpenApiConfig {
 }
