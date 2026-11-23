@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router";
 import AccountCard from "../components/AccountCard";
 import { api } from "../api/client";
 import type { Account } from "../types";
@@ -7,6 +8,7 @@ import type { Account } from "../types";
 // 18.6절 TanStack Query 버전
 export default function AccountsPage() {
   const [hidden, setHidden] = useState(false);
+  const navigate = useNavigate();
   const { data: accounts, isPending, isError, error } = useQuery({
     queryKey: ["myAccounts"],                          // 이 데이터의 이름(캐시 키)
     queryFn: () => api<Account[]>("/api/me/accounts"),
@@ -24,7 +26,7 @@ export default function AccountsPage() {
       <div className="card-list">
         {accounts.map((a) => (
           <AccountCard key={a.id} account={a}
-                       onShowHistory={(no) => alert(no + " 거래내역")}   /* 19.2절에서 화면으로 바꾼다 */ />
+                       onShowHistory={(no) => navigate(`/accounts/${no}`)}   /* 19.2절 */ />
         ))}
       </div>
     </section>

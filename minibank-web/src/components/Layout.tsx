@@ -9,6 +9,7 @@ export default function Layout() {
         <strong>미니뱅크</strong>
         <nav>
           <NavLink to="/">내 계좌</NavLink>
+          <NavLink to="/transfer">이체</NavLink>
         </nav>
         <span>{name}님</span>
         <button onClick={logout}>로그아웃</button>
